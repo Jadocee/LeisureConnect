@@ -1,0 +1,599 @@
+<div class="flex flex-col w-full">
+    <!-- Header -->
+    <div class="w-full gap-0.5 flex flex-col pt-[5rem] md:pt-10">
+        <div class="flex items-center justify-between">
+            <h2 class="shrink-0 text-h2">
+                Phone Reservation Form
+            </h2>
+        </div>
+
+        <div class="relative">
+            <div class="py-1 flex items-center justify-start text-sm text-neutral-500">
+                <p>Enter customer and reservation details</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col mt-[4rem] gap-[5rem] md:gap-[7.5rem]">
+
+        <!-- Error Alert -->
+        @if (errorMessage()) {
+        <div class="alert alert-error mb-6 animate-fadeIn">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{{ errorMessage() }}</span>
+        </div>
+        }
+
+        <!-- Main Form -->
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-8">
+
+            <!-- Hotel & Dates Card -->
+            <div class="card bg-base-100 shadow border border-base-300">
+                <div class="card-body">
+                    <h4 class="card-title text-xl text-accent">Hotel & Dates</h4>
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Hotel Select with Loading Indicator -->
+                        <div class="flex flex-col w-full" formGroupName="reservationDetails">
+                            <label for="hotelId" class="label">
+                                <span class="text-base-content/60">Hotel *</span>
+                            </label>
+                            <div class="relative">
+                                <select id="hotelId" formControlName="hotelId" class="select w-full"
+                                    [ngClass]="{'select-error': isSubmitted() && form.get('reservationDetails.hotelId')?.invalid && form.get('reservationDetails.hotelId')?.touched}">
+                                    <option disabled [ngValue]="null">Select a hotel</option>
+                                    @for (hotel of hotels(); track hotel.hotelId) {
+                                    <option [ngValue]="hotel.hotelId">
+                                        {{ hotel.name }} - {{ hotel.city }}, {{ hotel.country }}
+                                    </option>
+                                    }
+                                </select>
+
+                                <!-- Hotels loading indicator -->
+                                @if (loadingState().hotels) {
+                                <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <span class="loading loading-spinner loading-xs text-primary"></span>
+                                </div>
+                                }
+                            </div>
+
+                            @if (isSubmitted() && form.get('reservationDetails.hotelId')?.invalid && form.get('reservationDetails.hotelId')?.touched) {
+                            <label class="label">
+                                <span class="text-error text-sm">Hotel is required</span>
+                            </label>
+                            }
+                        </div>
+
+                        <!-- Date Range Picker -->
+                        <div class="flex flex-col w-full" formGroupName="dateRange">
+                            <label class="label">
+                                <span class="text-base-content/60">Stay Dates *</span>
+                            </label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="input">
+                                        <span class="label">From</span>
+                                        <input type="date" formControlName="startDate"
+                                            aria-label="Start Date" class="w-full"
+                                            [min]="minStartDate.toISOString().split('T')[0]"
+                                            [ngClass]="{'input-error': isSubmitted() && form.get('dateRange.startDate')?.invalid && form.get('dateRange.startDate')?.touched}">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="input">
+                                        <span class="label">To</span>
+                                        <input type="date" formControlName="endDate" aria-label="End Date"
+                                            class="w-full" [min]="minEndDate.toISOString().split('T')[0]"
+                                            [ngClass]="{'input-error': isSubmitted() && form.get('dateRange.endDate')?.invalid && form.get('dateRange.endDate')?.touched}">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Information Card -->
+            <div class="card bg-base-100 shadow border border-base-300">
+                <div class="card-body">
+                    <h4 class="card-title text-xl text-accent">Customer Information</h4>
+
+                    <div class="space-y-4" formGroupName="customerInfo">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- First Name -->
+                            <div class="w-full">
+                                <label for="firstName"
+                                    [ngClass]="{'input-error': isSubmitted() && form.get('customerInfo.customerFirstName')?.invalid && form.get('customerInfo.customerFirstName')?.touched}"
+                                    class="input w-full">
+                                    <span class="label">First Name *</span>
+                                    <input type="text" id="firstName" formControlName="customerFirstName"
+                                        class="w-full">
+                                </label>
+
+                                @if (isSubmitted() && form.get('customerInfo.customerFirstName')?.invalid && form.get('customerInfo.customerFirstName')?.touched) {
+                                <label class="label">
+                                    <span class="text-error text-sm">First name is required</span>
+                                </label>
+                                }
+                            </div>
+
+                            <!-- Last Name -->
+                            <div class="w-full">
+                                <label for="lastName"
+                                    [ngClass]="{'input-error': isSubmitted() && form.get('customerInfo.customerLastName')?.invalid && form.get('customerInfo.customerLastName')?.touched}"
+                                    class="input w-full">
+                                    <span class="label">Last Name *</span>
+                                    <input type="text" id="lastName" formControlName="customerLastName" class="w-full">
+                                </label>
+
+                                @if (isSubmitted() && form.get('customerInfo.customerLastName')?.invalid && form.get('customerInfo.customerLastName')?.touched) {
+                                <label class="label">
+                                    <span class="text-error text-sm">Last name is required</span>
+                                </label>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="w-full">
+                            <label for="address" class="input w-full"
+                                [ngClass]="{'input-error': isSubmitted() && form.get('customerInfo.customerAddress')?.invalid && form.get('customerInfo.customerAddress')?.touched}">
+                                <span class="label">Address *</span>
+                                <input type="text" id="address" formControlName="customerAddress" class="w-full">
+                            </label>
+
+                            @if (isSubmitted() && form.get('customerInfo.customerAddress')?.invalid && form.get('customerInfo.customerAddress')?.touched) {
+                            <label class="label">
+                                <span class="text-error text-sm">Address is required</span>
+                            </label>
+                            }
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Phone Number -->
+                            <div class="w-full">
+                                <label for="phone" class="input w-full"
+                                    [ngClass]="{'input-error': isSubmitted() && form.get('customerInfo.customerPhoneNumber')?.invalid && form.get('customerInfo.customerPhoneNumber')?.touched}">
+                                    <span class="label">Phone Number *</span>
+                                    <input type="tel" id="phone" formControlName="customerPhoneNumber"
+                                        class="w-full">
+                                </label>
+
+                                @if (isSubmitted() && form.get('customerInfo.customerPhoneNumber')?.invalid && form.get('customerInfo.customerPhoneNumber')?.touched) {
+                                <label class="label">
+                                    <span class="text-error text-sm">
+                                        @if (form.get('customerInfo.customerPhoneNumber')?.errors?.['required']) {
+                                            Phone number is required
+                                        } @else if (form.get('customerInfo.customerPhoneNumber')?.errors?.['pattern']) {
+                                            Invalid phone number format
+                                        }
+                                    </span>
+                                </label>
+                                }
+                            </div>
+
+                            <!-- Email -->
+                            <div class="w-full">
+                                <label for="email" class="input w-full"
+                                    [ngClass]="{'input-error': isSubmitted() && form.get('customerInfo.customerEmail')?.invalid && form.get('customerInfo.customerEmail')?.touched}">
+                                    <span class="label">Email</span>
+                                    <input type="email" id="email" formControlName="customerEmail" class="w-full"
+                                        placeholder="mail@site.com">
+                                </label>
+
+                                @if (isSubmitted() && form.get('customerInfo.customerEmail')?.invalid && form.get('customerInfo.customerEmail')?.touched) {
+                                <label class="label">
+                                    <span class="text-error text-sm">Please enter a valid email address</span>
+                                </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Packages Card -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h4 class="card-title text-xl text-accent">Available Packages</h4>
+
+                    <!-- Loading State -->
+                    @if (loadingState().packages) {
+                    <div class="flex justify-center py-12">
+                        <span class="loading loading-spinner loading-lg text-primary"></span>
+                    </div>
+                    }
+
+                    <!-- No Selection Yet -->
+                    @if (!loadingState().packages && availablePackages().length === 0) {
+                    <div class="alert alert-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            class="stroke-current shrink-0 w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Please select a hotel and date range to view available packages.</span>
+                    </div>
+                    }
+
+                    <!-- Package Cards -->
+                    @if (!loadingState().packages && availablePackages().length > 0) {
+                    <!-- Search and Filter Controls -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="form-control">
+                            <div class="input-group">
+                                <input type="text" placeholder="Search packages..." class="input w-full"
+                                    [value]="searchFilters().searchText"
+                                    (input)="onSearchTextChange($event)">
+                                <button aria-label="Search" type="button" class="btn btn-square">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <select aria-label="Package Type" class="select w-full" [value]="searchFilters().selectedType"
+                            (change)="onPackageTypeChange($event)">
+                            @for (type of packageTypes; track type.id) {
+                            <option [value]="type.id">{{ type.name }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Package Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @for (package of filteredPackages(); track package.packageId) {
+                        <div class="card bg-base-200 hover:shadow-xl transition-shadow duration-300">
+                            <div class="card-body">
+                                <div class="flex justify-between items-center">
+                                    <h5 class="card-title">{{ package.name }}</h5>
+                                    @if (package.isStandardPackage) {
+                                    <div class="badge badge-info">Standard</div>
+                                    } @else {
+                                    <div class="badge badge-secondary">Custom</div>
+                                    }
+                                </div>
+
+                                <p>{{ package.description }}</p>
+
+                                <div class="divider"></div>
+
+                                <ul class="space-y-2">
+                                    <li class="flex justify-between">
+                                        <span class="font-semibold">Per Night:</span>
+                                        <span>{{ package.currencyCode }} {{ package.advertisedPrice.toFixed(2) }}</span>
+                                    </li>
+                                    <li class="flex justify-between">
+                                        <span class="font-semibold">Total for {{ stayLength() }} nights:</span>
+                                        <span class="font-bold">{{ package.currencyCode }} {{
+                                            getTotalPrice(package.advertisedPrice).toFixed(2) }}</span>
+                                    </li>
+                                    <li>
+                                        <span class="font-semibold">Availability:</span> {{ package.startDate | date:'mediumDate' }} to {{ package.endDate | date:'mediumDate' }}
+                                    </li>
+                                    <li>
+                                        <span class="font-semibold">Grace Period:</span> {{ package.gracePeriodDays }}
+                                        day(s)
+                                    </li>
+                                </ul>
+
+                                <!-- Included Services -->
+                                @if (package.includedServices && package.includedServices.length > 0) {
+                                <div class="mt-4">
+                                    <h6 class="font-semibold mb-2">Included Services:</h6>
+                                    <ul class="space-y-1">
+                                        @for (service of package.includedServices; track service.serviceItemId) {
+                                        <li class="flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success mr-2"
+                                                viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            <span>{{ service.name }}</span>
+                                        </li>
+                                        }
+                                    </ul>
+                                </div>
+                                }
+
+                                <div class="card-actions justify-end mt-4">
+                                    <button type="button" class="btn btn-primary"
+                                        (click)="addPackage(package.packageId)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        Add to Reservation
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Selected Items Card -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h4 class="card-title text-xl text-accent">Selected Items</h4>
+
+                    <!-- No Items Selected -->
+                    @if (reservationItemsArray.length === 0) {
+                    <div class="alert alert-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>No packages or services selected. Please add at least one item to the reservation.</span>
+                    </div>
+                    }
+
+                    <!-- Selected Items List -->
+                    <div formArrayName="reservationItems">
+                        @for (item of reservationItemsArray.controls; track $index) {
+                        <div [formGroupName]="$index" class="card bg-base-200 mb-4">
+                            <div class="card-body">
+                                <div class="flex justify-between items-center">
+                                    <h5 class="card-title">
+                                        {{ item.get('packageId')?.value ? findPackage(item.get('packageId')?.value)?.name : 'Service Item' }}
+                                    </h5>
+                                    <button type="button" class="btn btn-sm btn-error"
+                                        (click)="removeReservationItem($index)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                            fill="currentColor">
+                                            <path fill-rule="evenodd"
+                                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        Remove
+                                    </button>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <!-- Quantity -->
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">Quantity</span>
+                                        </label>
+                                        <input aria-label="Quantity" type="number" formControlName="quantity"
+                                            class="input w-full" min="1">
+                                    </div>
+
+                                    <!-- Start Date -->
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">Start Date</span>
+                                        </label>
+                                        <input aria-label="Start Date" type="date" formControlName="startDate"
+                                            class="input w-full">
+                                    </div>
+
+                                    <!-- End Date -->
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">End Date</span>
+                                        </label>
+                                        <input aria-label="End Date" type="date" formControlName="endDate"
+                                            class="input w-full">
+                                    </div>
+                                </div>
+
+                                <!-- Special Requests -->
+                                <div class="form-control mt-4">
+                                    <label class="label">
+                                        <span class="label-text">Special Requests</span>
+                                    </label>
+                                    <textarea aria-label="Special Requests" formControlName="specialRequests"
+                                        class="textarea textarea-bordered h-24"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guest Information Card -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="flex justify-between items-center">
+                        <h4 class="card-title text-xl text-accent">Guest Information</h4>
+                        <button type="button" class="btn btn-sm btn-success" (click)="addGuest()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path
+                                    d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                            </svg>
+                            Add Guest
+                        </button>
+                    </div>
+
+                    <!-- Guest List -->
+                    <div formArrayName="guests">
+                        @for (guest of guestsArray.controls; track $index) {
+                        <div [formGroupName]="$index" class="card bg-base-200 mb-4 transition-all duration-300 hover:shadow-md">
+                            <div class="card-body">
+                                <div class="flex justify-between items-center">
+                                    <h5 class="card-title flex items-center">
+                                        Guest {{ $index + 1 }}
+                                        @if (guest.get('isPrimaryGuest')?.value) {
+                                        <div class="badge badge-primary ml-2">Primary</div>
+                                        }
+                                    </h5>
+                                    <div class="flex gap-2">
+                                        @if (!guest.get('isPrimaryGuest')?.value) {
+                                        <button type="button" class="btn btn-sm btn-outline btn-primary"
+                                            (click)="setPrimaryGuest($index)">
+                                            Set as Primary
+                                        </button>
+                                        }
+                                        @if (guestsArray.length > 1) {
+                                        <button type="button" class="btn btn-sm btn-error" (click)="removeGuest($index)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            Remove
+                                        </button>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- First Name -->
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">First Name *</span>
+                                        </label>
+                                        <input aria-label="First Name" placeholder="Guest {{ $index + 1 }} First Name"
+                                            type="text" formControlName="firstName" class="input w-full"
+                                            [ngClass]="{'input-error': isSubmitted() && guest.get('firstName')?.invalid && guest.get('firstName')?.touched}">
+                                        @if (isSubmitted() && guest.get('firstName')?.invalid && guest.get('firstName')?.touched) {
+                                        <label class="label">
+                                            <span class="text-error text-sm">First name is required</span>
+                                        </label>
+                                        }
+                                    </div>
+
+                                    <!-- Last Name -->
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">Last Name *</span>
+                                        </label>
+                                        <input aria-label="Last Name" placeholder="Guest {{ $index + 1 }} Last Name"
+                                            type="text" formControlName="lastName" class="input w-full"
+                                            [ngClass]="{'input-error': isSubmitted() && guest.get('lastName')?.invalid && guest.get('lastName')?.touched}">
+                                        @if (isSubmitted() && guest.get('lastName')?.invalid && guest.get('lastName')?.touched) {
+                                        <label class="label">
+                                            <span class="text-error text-sm">Last name is required</span>
+                                        </label>
+                                        }
+                                    </div>
+
+                                    <!-- Email -->
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">Email</span>
+                                        </label>
+                                        <input aria-label="Email" placeholder="Guest {{ $index + 1 }} Email" type="email"
+                                            formControlName="email" class="input w-full"
+                                            [ngClass]="{'input-error': isSubmitted() && guest.get('email')?.invalid && guest.get('email')?.touched}">
+                                        @if (isSubmitted() && guest.get('email')?.invalid && guest.get('email')?.touched) {
+                                        <label class="label">
+                                            <span class="text-error text-sm">Please enter a valid email address</span>
+                                        </label>
+                                        }
+                                    </div>
+
+                                    <!-- Phone Number -->
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">Phone Number</span>
+                                        </label>
+                                        <input aria-label="Phone Number" placeholder="Guest {{ $index + 1 }} Phone Number"
+                                            type="tel" formControlName="phoneNumber" class="input w-full"
+                                            [ngClass]="{'input-error': isSubmitted() && guest.get('phoneNumber')?.invalid && guest.get('phoneNumber')?.touched}">
+                                        @if (isSubmitted() && guest.get('phoneNumber')?.invalid && guest.get('phoneNumber')?.touched) {
+                                        <label class="label">
+                                            <span class="text-error text-sm">Invalid phone number format</span>
+                                        </label>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Address -->
+                                <div class="form-control mt-2">
+                                    <label class="label">
+                                        <span class="label-text">Address</span>
+                                    </label>
+                                    <input aria-label="Address" placeholder="Guest {{ $index + 1 }} Address" type="text"
+                                        formControlName="address" class="input w-full">
+                                </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Information Card -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h4 class="card-title text-xl text-accent">Payment Information</h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" formGroupName="reservationDetails">
+                        <!-- Payment Method with Loading Indicator -->
+                        <div class="form-control w-full">
+                            <label for="paymentMethod" class="label">
+                                <span class="label-text">Payment Method</span>
+                            </label>
+                            <div class="relative">
+                                <select id="paymentMethod" formControlName="paymentMethodId"
+                                    class="select w-full">
+                                    <option [ngValue]="null">Select a payment method</option>
+                                    @for (method of paymentMethods(); track method.paymentMethodId) {
+                                    <option [ngValue]="method.paymentMethodId">{{ method.name }}</option>
+                                    }
+                                </select>
+
+                                <!-- Payment methods loading indicator -->
+                                @if (loadingState().paymentMethods) {
+                                <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <span class="loading loading-spinner loading-xs text-primary"></span>
+                                </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Payment Reference -->
+                        <div class="form-control w-full">
+                            <label for="paymentReference" class="label">
+                                <span class="label-text">Payment Reference</span>
+                            </label>
+                            <input type="text" id="paymentReference" formControlName="paymentReference"
+                                class="input w-full">
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            class="stroke-current shrink-0 w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>A 10% deposit will be charged at the time of reservation.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Submission -->
+            <div class="flex flex-col md:flex-row justify-end gap-4">
+                <button type="button" class="btn btn-neutral" routerLink="/dashboard">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="loadingState().submission">
+                    @if (loadingState().submission) {
+                    <span class="loading loading-spinner loading-sm"></span>
+                    }
+
+                    Create Reservation
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>

@@ -1,0 +1,11 @@
+FROM mcr.microsoft.com/mssql-tools
+
+USER root
+WORKDIR /init
+
+COPY ./scripts ./scripts
+COPY ./init.sh .
+
+RUN chmod +x ./init.sh
+
+CMD ["/bin/bash", "./init.sh"]

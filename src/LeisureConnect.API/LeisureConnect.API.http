@@ -1,0 +1,6 @@
+@LeisureConnect.API_HostAddress = http://localhost:5116
+
+GET {{LeisureConnect.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

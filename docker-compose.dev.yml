@@ -1,0 +1,99 @@
+volumes:
+    db-data:
+        name: "database-data"
+        driver: "local"
+
+networks:
+    leisureconnect:
+        driver: "bridge"
+        name: "leisureconnect-network"
+
+services:
+    database:
+        container_name: "leisureconnect-db"
+        env_file: "./docker.dev.env"
+        ports:
+            - "1434:1433"
+        build:
+            context: "./database"
+            dockerfile: "../docker/database/Dockerfile"
+        volumes:
+            - "db-data:/var/opt/mssql"
+        healthcheck:
+            test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U SA -P $$SA_PASSWORD -Q 'SELECT 1' -C || exit 1"]
+            interval: "10s"
+            retries: 10
+            start_period: "10s"
+            timeout: "3s"
+        restart: "unless-stopped"
+        networks:
+            leisureconnect:
+                aliases:
+                    - "leisureconnect-db"
+    database-init:
+        build:
+            context: "./database"
+            dockerfile: "../docker/database/Dockerfile.Init"
+        container_name: "leisureconnect-db-init"
+        depends_on:
+            database:
+                condition: "service_healthy"
+        volumes:
+            - "db-data:/var/opt/mssql"
+        env_file: "./docker.dev.env"
+        restart: "no"
+        networks:
+            leisureconnect:
+                aliases:
+                    - leisureconnect-db-init
+    app:
+        container_name: "leisureconnect-app"
+        build:
+            context: "./src/LeisureConnect.Client"
+            dockerfile: "../../docker/frontend/Dockerfile"
+        env_file: "./docker.dev.env"
+        environment:
+            - "NODE_ENV=development"
+            - "API_URL=http://leisureconnect-api:5116"
+        ports:
+            - "4200:4200"
+        expose:
+            - 4200
+        depends_on:
+            database:
+                condition: "service_healthy"
+            database-init:
+                condition: "service_completed_successfully"
+            api:
+                condition: "service_started"
+        volumes:
+            - "./src/LeisureConnect.Client:/app"
+            - "/app/node_modules"
+            - "/app/.angular"
+        restart: "unless-stopped"
+        networks:
+            leisureconnect:
+                aliases:
+                    - "leisureconnect-app"
+    api:
+        container_name: "leisureconnect-api"
+        build:
+            context: "./src"
+            dockerfile: "../docker/backend/Dockerfile"
+            target: "final"
+        environment:
+            - "ASPNET_CORE_ENVIRONMENT=Development"
+            - "ASPNETCORE_URLS=http://+:5116"
+        env_file: "./docker.dev.env"
+        ports:
+            - "5116:5116"
+        depends_on:
+            database:
+                condition: "service_healthy"
+            database-init:
+                condition: "service_completed_successfully"
+        restart: "unless-stopped"
+        networks:
+            leisureconnect:
+                aliases:
+                    - "leisureconnect-api"

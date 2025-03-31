@@ -140,7 +140,7 @@ erDiagram
 
 3. Build and start the containers
    ```bash
-   docker-compose up -d
+   docker-compose -f "docker-compose.dev.yml" up
    ```
    
    Note: Ensure both environment files are properly configured before starting the containers. The `docker.dev.env` file is used by the Docker services, while the `dev.env` file can be used for local development outside of Docker.

@@ -233,10 +233,6 @@ leisureconnect/
 └── docker.dev.env         # Environment variables
 ```
 
-## Contributors
-
-- [Your Name] - [Your Role]
-
 ## License
 
 This project is created for educational purposes as part of COMP3350 - Advanced Database course.

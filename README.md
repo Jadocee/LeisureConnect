@@ -1,91 +1,31 @@
 # LeisureConnect - Hotel Management System
 
-LeisureConnect is a comprehensive hotel management system for the LeisureAustralasia group, designed to centralize bookings, reservations, and billing across their hotels and resorts throughout Australia and Asia.
-
 ## Project Overview
 
-This project provides a complete solution for hotel chain management with the following features:
+LeisureConnect is a centralized hotel management system designed for LeisureAustralasia group, which operates hotels and resorts throughout Australia (Brisbane, Cairns, Newcastle, Broome, and Darwin) and Asia (Vietnam, Singapore, Thailand, Sri Lanka, and India). The system provides a web-enabled central IT solution for hotel bookings, reservations, and billing.
 
-- Centralized hotel and resort management
-- Facility and service tracking
-- Package and promotion creation
-- Customer reservation system
-- Room booking and allocation
+This project was developed as part of COMP3350 - Advanced Database Assignment 1, focusing on database design and implementation with a web interface for hotel staff to make phone reservations.
+
+## Features
+
+- Centralized management of multiple hotels and resorts
+- Facility and service management
+- Package creation and management
+- Reservation booking system with capacity management
 - Guest management
 - Billing and payment processing
+- Web interface for staff to make phone reservations
 
-## System Architecture
+## Database Design
 
-The system consists of the following components:
+The database is designed to handle all aspects of hotel management including:
+- Hotels and facilities
+- Service items and packages
+- Customers and guests
+- Reservations and bookings
+- Billing and payments
 
-- **Database**: Microsoft SQL Server database for storing all application data
-- **API**: ASP.NET Core REST API for business logic and data access
-- **Client**: Angular 19 frontend application for user interface
-- **Docker**: Containerization for easy deployment and development
-
-## Prerequisites
-
-Before setting up the project, ensure you have the following installed:
-
-- [Docker](https://www.docker.com/products/docker-desktop/) (version 20.10.0 or later)
-- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.0.0 or later)
-- [Git](https://git-scm.com/downloads) (for cloning the repository)
-
-## Setup Instructions
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/your-organization/leisureconnect.git
-cd leisureconnect
-```
-
-### 2. Configure Environment Variables
-
-Create a `docker.dev.env` file in the project root with the following variables:
-
-```
-# Database Configuration
-SA_PASSWORD=P4ssw0rd!
-DATABASE_NAME=LeisureAustralasiaDB
-
-# Client Configuration
-NODE_ENV=development
-API_URL=http://localhost:5116
-```
-
-### 3. Build and Start the Containers
-
-```bash
-docker-compose up -d
-```
-
-This command will:
-- Build the database container and initialize it
-- Build and start the API
-- Build and start the Angular frontend application
-
-## Running the Project
-
-Once the containers are up and running, you can access:
-
-- Frontend application: [http://localhost:4200](http://localhost:4200)
-- API: [http://localhost:5116](http://localhost:5116)
-- SQL Server: localhost:1434 (use SQL Server Management Studio or another client)
-
-### User Credentials
-
-The following default user credentials are created during initial setup:
-
-#### Administrator
-- Email: admin@leisureconnect.com
-- Password: Admin123!
-
-#### Front Desk Staff
-- Email: frontdesk@leisureconnect.com  
-- Password: Staff123!
-
-## Database Schema
+### Database Schema
 
 ```mermaid
 erDiagram
@@ -93,226 +33,210 @@ erDiagram
     Hotel ||--o{ Employee : employs
     Hotel ||--o{ HotelServiceItem : offers
     Hotel ||--o{ HotelPackage : offers
-    Hotel ||--o{ Reservation : hosts
-    
-    Country ||--o{ City : contains
-    City ||--o{ Hotel : locatedIn
     
     FacilityType ||--o{ Facility : categorizes
     
     ServiceType ||--o{ ServiceCategory : categorizes
     ServiceCategory ||--o{ ServiceItem : contains
     
-    ServiceItem ||--o{ HotelServiceItem : provides
-    ServiceItem ||--o{ PackageServiceItem : includedIn
-    ServiceItem }o--o{ Charge : generates
+    ServiceItem ||--o{ HotelServiceItem : included_in
+    ServiceItem ||--o{ PackageServiceItem : included_in
     
     AdvertisedPackage ||--o{ PackageServiceItem : contains
-    AdvertisedPackage ||--o{ HotelPackage : availableAt
-    AdvertisedPackage }o--o{ Booking : reservedAs
+    AdvertisedPackage ||--o{ HotelPackage : offered_by
+    Employee ||--o{ AdvertisedPackage : authorizes
     
     Customer ||--o{ Reservation : makes
-    Customer ||--o{ Guest : registers
+    Hotel ||--o{ Reservation : hosts
+    PaymentInformation ||--o{ Reservation : deposits
     
     Reservation ||--o{ Booking : contains
-    Reservation ||--|| Bill : generates
+    AdvertisedPackage ||--o{ Booking : booked_as
+    ServiceItem ||--o{ Booking : booked_as
     
-    Booking ||--o{ BookingFacility : uses
-    Booking ||--o{ BookingGuest : hosts
-    Booking ||--o{ Charge : incurs
+    Booking ||--o{ BookingFacility : reserves
+    Facility ||--o{ BookingFacility : reserved_by
     
-    Bill ||--o{ BillCharge : itemizes
-    Bill ||--o{ BillPayment : settles
+    Booking ||--o{ BookingGuest : accommodates
+    Guest ||--o{ BookingGuest : stays_in
     
-    Status ||--o{ Facility : indicates
-    Status ||--o{ ServiceItem : indicates
-    Status ||--o{ AdvertisedPackage : indicates
-    Status ||--o{ Reservation : indicates
-    Status ||--o{ Booking : indicates
-    Status ||--o{ Bill : indicates
+    Booking ||--o{ Charge : accrues
+    ServiceItem ||--o{ Charge : charged_for
     
-    Currency ||--o{ ServiceItem : basedIn
-    Currency ||--o{ AdvertisedPackage : advertisedIn
-    Currency ||--o{ PaymentInformation : processedIn
-    Currency ||--o{ Charge : chargedIn
-    Currency ||--o{ Bill : billedIn
+    Reservation ||--o{ Bill : billed_to
+    Bill ||--o{ BillCharge : includes
+    Charge ||--o{ BillCharge : included_in
     
-    PaymentMethod ||--o{ PaymentInformation : usedFor
-    PaymentInformation ||--o{ Reservation : deposits
-    PaymentInformation ||--o{ BillPayment : settles
+    Bill ||--o{ BillPayment : paid_with
+    PaymentInformation ||--o{ BillPayment : payment_info
 ```
 
 ## Database Dictionary
 
-### Reference Tables
-
-| Table | Description |
-|-------|-------------|
-| Status | Tracks status of various entities (Active, Inactive, Reserved, etc.) |
-| Currency | Currencies used throughout the system |
-| Country | Countries where hotels are located |
-| City | Cities where hotels are located |
-| Role | Employee roles and permissions |
-| Department | Hotel departments |
-| FacilityType | Types of facilities (room, pool, gym, etc.) |
-| ServiceType | Types of services offered |
-| ServiceCategory | Categories of services under each type |
-| PaymentMethod | Payment methods accepted |
-
 ### Core Entities
 
-#### Hotel
-| Field | Type | Description |
-|-------|------|-------------|
-| HotelId | INT | Primary key |
-| Name | NVARCHAR(100) | Hotel name |
-| Address | NVARCHAR(255) | Physical address |
-| CityId | INT | Reference to City |
-| PhoneNumber | NVARCHAR(20) | Contact phone |
-| Description | NVARCHAR(500) | Hotel description |
-| TotalCapacity | INT | Maximum guest capacity |
-| BaseCurrencyId | INT | Default currency |
-| IsActive | BIT | Whether hotel is active |
+| Entity | Description |
+|--------|-------------|
+| Hotel | Represents hotels and resorts in the LeisureAustralasia group |
+| Facility | Represents facilities within hotels (rooms, conference venues, pools, gyms, etc.) |
+| FacilityType | Categorizes facilities (standard room, family room, conference hall, etc.) |
+| ServiceItem | Represents services offered by hotels (accommodation, meals, etc.) |
+| ServiceCategory | Categorizes services (food, accommodation, events, etc.) |
+| ServiceType | High-level categorization of service categories |
+| AdvertisedPackage | Packages of services offered to guests (e.g., half-board package) |
+| Customer | Individuals who make reservations |
+| Guest | Individuals who stay at the hotels |
+| Reservation | Booking record for a customer (may include multiple bookings) |
+| Booking | Individual service or package bookings within a reservation |
+| Bill | Final invoice for a reservation |
+| Charge | Individual charges accrued during a stay |
+| PaymentInformation | Payment details for deposits and final payments |
 
-#### Facility
-| Field | Type | Description |
-|-------|------|-------------|
-| FacilityId | INT | Primary key |
-| Name | NVARCHAR(100) | Facility name |
-| FacilityTypeId | INT | Type of facility |
-| HotelId | INT | Hotel the facility belongs to |
-| Description | NVARCHAR(500) | Facility description |
-| Capacity | INT | Maximum people capacity |
-| StatusId | INT | Current facility status |
+### Key Relationships
 
-#### ServiceItem
-| Field | Type | Description |
-|-------|------|-------------|
-| ServiceItemId | INT | Primary key |
-| Name | NVARCHAR(100) | Service name |
-| ServiceCategoryId | INT | Category of service |
-| FacilityTypeId | INT | Required facility type (if any) |
-| BaseCost | DECIMAL(10,2) | Cost to hotel |
-| BaseCurrencyId | INT | Currency for base cost |
-| Capacity | INT | Maximum capacity if applicable |
-| AvailableTimes | NVARCHAR(255) | When service is available |
-| Restrictions | NVARCHAR(500) | Any limitations |
+| Relationship | Description |
+|--------------|-------------|
+| HotelServiceItem | Links hotels with the services they offer |
+| HotelPackage | Links hotels with the packages they offer |
+| PackageServiceItem | Links packages with their included services |
+| BookingFacility | Links bookings with the facilities reserved |
+| BookingGuest | Links bookings with the guests staying |
+| BillCharge | Links bills with their individual charges |
+| BillPayment | Links bills with their payment records |
 
-#### AdvertisedPackage
-| Field | Type | Description |
-|-------|------|-------------|
-| PackageId | INT | Primary key |
-| Name | NVARCHAR(100) | Package name |
-| Description | NVARCHAR(500) | Package description |
-| StartDate | DATE | Availability start date |
-| EndDate | DATE | Availability end date |
-| AdvertisedPrice | DECIMAL(10,2) | Published price |
-| AdvertisedCurrencyId | INT | Currency for price |
-| GracePeriodDays | INT | Cancellation grace period |
-| IsStandardPackage | BIT | Whether standard or custom |
+## Project Setup and Installation
 
-#### Customer
-| Field | Type | Description |
-|-------|------|-------------|
-| CustomerId | INT | Primary key |
-| FirstName | NVARCHAR(50) | First name |
-| LastName | NVARCHAR(50) | Last name |
-| Email | NVARCHAR(100) | Email address |
-| PhoneNumber | NVARCHAR(20) | Contact phone |
-| Address | NVARCHAR(255) | Physical address |
-| LoyaltyPoints | INT | Accumulated points |
+### Prerequisites
 
-#### Reservation
-| Field | Type | Description |
-|-------|------|-------------|
-| ReservationId | INT | Primary key |
-| ReservationNumber | NVARCHAR(20) | Unique identifier |
-| CustomerId | INT | Customer making reservation |
-| HotelId | INT | Hotel being reserved |
-| ReservationDate | DATETIME2 | When reservation was made |
-| TotalAmount | DECIMAL(10,2) | Total cost |
-| DepositAmount | DECIMAL(10,2) | Required deposit |
-| StatusId | INT | Current status |
+- Docker and Docker Compose
+- Git
 
-#### Booking
-| Field | Type | Description |
-|-------|------|-------------|
-| BookingId | INT | Primary key |
-| ReservationId | INT | Parent reservation |
-| PackageId | INT | Reserved package (if applicable) |
-| ServiceItemId | INT | Reserved service (if applicable) |
-| StartDate | DATE | Check-in date |
-| EndDate | DATE | Check-out date |
-| Quantity | INT | Number of items/rooms |
-| StatusId | INT | Current status |
+### Setup Steps
 
-#### Bill
-| Field | Type | Description |
-|-------|------|-------------|
-| BillId | INT | Primary key |
-| ReservationId | INT | Associated reservation |
-| TotalAmount | DECIMAL(10,2) | Total amount due |
-| DepositAmount | DECIMAL(10,2) | Deposit received |
-| DiscountAmount | DECIMAL(10,2) | Any discounts applied |
-| PaidAmount | DECIMAL(10,2) | Amount already paid |
-| StatusId | INT | Payment status |
+1. Clone the repository
+   ```bash
+   git clone https://github.com/your-username/leisureconnect.git
+   cd leisureconnect
+   ```
 
-## Development
+2. Create two environment files in the root directory:
 
-### Frontend Development
+   a. `docker.dev.env` file for Docker configuration:
+   ```
+   # Database Configuration
+   SA_PASSWORD=P4ssw0rd!
+   ACCEPT_EULA=Y
+   
+   # API Configuration
+   ConnectionStrings__Default=Server=leisureconnect-db;Database=LeisureAustralasiaDB;User Id=sa;Password=P4ssw0rd!;TrustServerCertificate=True;
+   ```
+   
+   b. `dev.env` file for local development:
+   ```
+   LEISURE_AUSTRALASIA_DB_CONNECTION_STRING=Server=localhost,1434;Database=LeisureAustralasiaDB;TrustServerCertificate=True;User Id=sa;Password=P4ssw0rd!;
+   SA_PASSWORD=P4ssw0rd!
+   ACCEPT_EULA=true
+   ```
 
-The frontend application is built with Angular 19 and is located in the `src/LeisureConnect.Client` directory. The application uses:
+3. Build and start the containers
+   ```bash
+   docker-compose up -d
+   ```
+   
+   Note: Ensure both environment files are properly configured before starting the containers. The `docker.dev.env` file is used by the Docker services, while the `dev.env` file can be used for local development outside of Docker.
 
-- Angular 19 with signals for state management
-- Reactive forms for user input
+4. Wait for all services to start up. This may take a few minutes as the database needs to be initialized and the application needs to be built.
+
+### Running the Application
+
+Once all services are up and running:
+
+1. Access the web application at http://localhost:4200
+2. The API is available at http://localhost:5116
+3. The database is available at localhost:1434 (SQL Server)
+   - Username: sa
+   - Password: YourSecurePassword123! (or whatever you set in docker.dev.env)
+
+## Usage
+
+### Making a Phone Reservation
+
+1. Log in to the web application
+2. Navigate to "Phone Reservation" in the menu
+3. Fill in the customer information
+4. Select a hotel and date range
+5. Browse and select available packages
+6. Add guest information
+7. Enter payment details
+8. Submit the reservation
+
+## Implementation Details
+
+### Backend
+
+- ASP.NET Core Web API
+- Entity Framework Core for ORM
+- SQL Server database
+- T-SQL stored procedures for key business logic
+
+### Frontend
+
+- Angular 19
 - Tailwind CSS for styling
+- Reactive forms for data binding
+- HTTP client for API communication
 
-To make changes to the frontend:
+### Database
 
-1. The application is mounted as a volume, so changes to source files will be reflected in real-time
-2. Navigate to http://localhost:4200 to view the application
-3. Changes to the code will automatically trigger a rebuild and reload
+- Microsoft SQL Server
+- Implemented with T-SQL scripts
+- Normalized schema design
+- Stored procedures for package creation and reservation booking
 
-### Backend Development
+## Stored Procedures
 
-The backend API is built with ASP.NET Core and is located in the `src` directory. To make changes:
+### usp_createPackage
 
-1. Edit the files in the `src` directory
-2. Rebuild the API container with `docker-compose up -d --build api`
+Creates a new service package with specified services, pricing, and availability period.
 
-### Database Development
+Parameters:
+- Package name
+- Service item list (table-valued parameter)
+- Description
+- Valid period start/end dates
+- Advertised price and currency
+- Authorizing employee
 
-To make changes to the database schema:
+### usp_makeReservation
 
-1. Modify the SQL scripts in the `database` directory
-2. Rebuild the database container with `docker-compose up -d --build database-init`
+Creates a new reservation with bookings, ensuring capacity constraints are met.
 
-## Troubleshooting
+Parameters:
+- Customer details
+- List of services/packages
+- Guest list
+- Hotel ID
+- Payment information
 
-### Database Connection Issues
+## Project Structure
 
-If the API cannot connect to the database:
+```
+leisureconnect/
+├── database/              # Database scripts and initialization
+├── docker/                # Docker configuration files
+├── src/                   # Source code
+│   ├── LeisureConnect.API/       # Backend API
+│   ├── LeisureConnect.Core/      # Core business logic
+│   ├── LeisureConnect.Data/      # Data access layer
+│   └── LeisureConnect.Client/    # Angular frontend
+├── docker-compose.yml     # Docker Compose configuration
+└── docker.dev.env         # Environment variables
+```
 
-1. Check if the database container is running: `docker ps`
-2. Verify the database initialization was successful: `docker logs leisureconnect-db-init`
-3. Check the connection string in the `docker.dev.env` file
+## Contributors
 
-### Frontend Not Loading
-
-If the frontend application doesn't load:
-
-1. Check if the app container is running: `docker ps`
-2. View the container logs: `docker logs leisureconnect-app`
-3. Make sure the API URL is correctly set in the environment
-
-### General Issues
-
-For general troubleshooting:
-
-1. Stop all containers: `docker-compose down`
-2. Rebuild and restart: `docker-compose up -d --build`
-3. Check logs for all containers: `docker-compose logs`
+- [Your Name] - [Your Role]
 
 ## License
 
-© 2025 LeisureAustralasia Group. All rights reserved.
+This project is created for educational purposes as part of COMP3350 - Advanced Database course.

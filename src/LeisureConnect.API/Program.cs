@@ -20,6 +20,11 @@ builder.Logging.AddJsonConsole(options =>
 {
     options.IncludeScopes = true;
     options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+    options.JsonWriterOptions = new System.Text.Json.JsonWriterOptions()
+    {
+        Indented = true,
+        SkipValidation = true,
+    };
 });
 
 // Add services to the container

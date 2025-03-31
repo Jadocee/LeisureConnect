@@ -10,10 +10,12 @@ namespace LeisureConnect.API.Controllers;
 public class ReservationController : ControllerBase
 {
     private readonly IReservationService _reservationService;
+    private readonly ILogger<ReservationController> _logger;
 
-    public ReservationController(IReservationService reservationService)
+    public ReservationController(IReservationService reservationService, ILogger<ReservationController> logger)
     {
         _reservationService = reservationService;
+        _logger = logger;
     }
 
     [HttpPost("create")]
@@ -22,6 +24,8 @@ public class ReservationController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateReservation([FromBody] ReservationRequest request, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("CreateReservation called with request: {request}", request);
+
         if (request == null)
         {
             return BadRequest(new ProblemDetails()
@@ -49,6 +53,7 @@ public class ReservationController : ControllerBase
         }
         catch (ArgumentException ex)
         {
+            _logger.LogError(ex, "Invalid reservation request: {request}", request);
             return BadRequest(new ProblemDetails()
             {
                 Title = "Invalid Reservation Request",
@@ -58,6 +63,7 @@ public class ReservationController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An error occurred while creating reservation: {request}", request);
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails()
             {
                 Title = "Internal Server Error",

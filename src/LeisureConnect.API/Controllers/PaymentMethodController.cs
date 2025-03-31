@@ -9,9 +9,11 @@ namespace LeisureConnect.API.Controllers;
 public class PaymentMethodController : ControllerBase
 {
     private readonly IPaymentMethodService _paymentMethodService;
+    private readonly ILogger<PaymentMethodController> _logger;
 
-    public PaymentMethodController(IPaymentMethodService paymentMethodService)
+    public PaymentMethodController(IPaymentMethodService paymentMethodService, ILogger<PaymentMethodController> logger)
     {
+        _logger = logger;
         _paymentMethodService = paymentMethodService;
     }
 
@@ -20,6 +22,8 @@ public class PaymentMethodController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAllPaymentMethods()
     {
+        _logger.LogInformation("GetAllPaymentMethods called");
+
         try
         {
             List<PaymentMethodDto> paymentMethods = await _paymentMethodService.GetAllPaymentMethodsAsync();
@@ -27,6 +31,7 @@ public class PaymentMethodController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "An error occurred while fetching all payment methods");
             return StatusCode(StatusCodes.Status500InternalServerError, new ProblemDetails()
             {
                 Title = "Internal Server Error",
